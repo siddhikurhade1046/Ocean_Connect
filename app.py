@@ -1,6 +1,8 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+import database as db
+import portal
 
 # Setting up the page configuration
 st.set_page_config(page_title="OceanConnect")
@@ -9,10 +11,25 @@ st.set_page_config(page_title="OceanConnect")
 db.init_db()
 
 #Initalize Sessions in State
-if"logged_in" not in st.sessions_state:
-    st.sessions_state["logged_in"] = False
+if"logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
 if "username" not in st.session_state:
     st.session_state["username"] = ""
+if "role" not in st.session_state:
+    st.session_state["role"] = ""
+
+#Screen before the login/Sign up
+if st.session_state["logged _in"]:
+    st.title("Ocean Connect DashBoard")
+    st.success(f"Successfully logged in a **{st.session_state['username']}**!")
+    st.info(f"Account Type: **{st.session_state['role']}**")
+
+    if st.button("Log Out"):
+        st.session_state["Logged_in"] = False
+        st.session_state["username"] = ""
+        st.session_state["role"] =""
+        st.rerun()
+
 
 def show_login_signup():
     st.title("Ocean Connect")
@@ -29,10 +46,12 @@ def show_login_signup():
             submit = st.form_submit_button("Log In")
 
             if submit:
-                if db.verify_user(username,password):
+                user_role =  db.verify_user(username,password)
+                if user_role:
                     st.session_state["logged_in"] = True
                     st.session_state["username"] = username
-                    st.session_state("Login Successful !!")
+                    st.session_state["role"] = username
+                    st.session_state(f"Login Successful as {user_role} !!")
                     st.rerun()
                 else:
                     st.error("Invalid username or password.")
@@ -42,15 +61,20 @@ def show_login_signup():
                     new_user = st.text_input("Choose Username")
                     new_pass = st.text_input("Choose Password",type = "password")
                     confirm_pass = st.text_input("Choice Password",type = "password")
-                    submit = st.form_submit_button("Submit Up")
+
+                    role = st.radio("Account Type",["Volunteer","Organizer"])
+                    role_value = "Organizer" if "Organizer" in role else "Volunteer"
+
+                    submit = st.form_submit_button("Sign Up")
 
                     if submit :
+                        role = "Organizer" if "Organizer" in role else "Volunteer"
                         if not new_user or not new_pass:
-                            st.warning("Please fill out all the feilds.")
+                            st.warning("Please fill out all the fields.")
                         elif new_pass != confirm_pass:
                             st.error("Password not matched ")
                         else:
-                            if db.register_user(new_user,new_pass):
+                            if db.register_user(new_user,new_pass,role_value):
                                 st.success("Account created successfully !! Go to the Login Page to proceed with the Login.")
                             else:
                                 st.error("Username already exisits. Plese pick a different Username.")
