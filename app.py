@@ -11,7 +11,8 @@ st.set_page_config(page_title="OceanConnect")
 db.init_db()
 
 #Initalize Sessions in State
-if"logged_in" not in st.session_state:
+# Initialize Sessions in State
+if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 if "username" not in st.session_state:
     st.session_state["username"] = ""
@@ -19,7 +20,7 @@ if "role" not in st.session_state:
     st.session_state["role"] = ""
 
 #Screen before the login/Sign up
-if st.session_state["logged _in"]:
+if st.session_state["logged_in"]:
     st.title("Ocean Connect DashBoard")
     st.success(f"Successfully logged in a **{st.session_state['username']}**!")
     st.info(f"Account Type: **{st.session_state['role']}**")
@@ -50,12 +51,12 @@ def show_login_signup():
                 if user_role:
                     st.session_state["logged_in"] = True
                     st.session_state["username"] = username
-                    st.session_state["role"] = username
-                    st.session_state(f"Login Successful as {user_role} !!")
+                    st.session_state["role"] = user_role
+                    st.success(f"Login Successful as {user_role} !!")
                     st.rerun()
                 else:
                     st.error("Invalid username or password.")
-            elif choice == "Sign Up":
+    elif choice == "Sign Up":
                 st.subheader("Create a new Account ")
                 with st.form("Signup_form"):
                     new_user = st.text_input("Choose Username")
