@@ -59,7 +59,7 @@ def show_login_signup():
     elif choice == "Sign Up":
                 st.subheader("Create a new Account ")
                 with st.form("Signup_form"):
-                    new_user = st.text_input("Choose Username")
+                    new_user = st.text_input("Choose Username", autocomplete="off")
                     new_pass = st.text_input("Choose Password",type = "password")
                     confirm_pass = st.text_input("Choice Password",type = "password")
 
