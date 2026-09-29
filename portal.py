@@ -28,16 +28,17 @@ def show_portal():
 
                 submit_event = st.form_submit_button("Publish Event")
 
-        if submit_event:
-            if title and activity_type and location and description:
+            if submit_event:
+            
+             if title and activity_type and location and description:
                         db.add_event(title , st.session_state["username"], activity_type, location,date,description)
                         st.success("Event created successfully !!!")
-            else:
+             else:
                         st.warning("Please fill in all event details.")
 
         with tab2:
             st.markdown("### Your Active Listings")
-            my_events = db.get_organizer_events(username)
+            my_events = db.get_ngo_events(username)
             if my_events :
                 for ev in my_events:
                     with st.expander(f" {ev[0]} ({ev[1]})"): 
@@ -51,7 +52,7 @@ def show_portal():
         events = db.get_all_events()
 
         if events:
-            for ev in events:
+            for idx,ev in enumerate(events):
                 with st.container():
                     # ev format: (title, ngo_username, activity_type, location, event_date, description)
                     st.markdown(f"### {ev[0]}")
@@ -62,7 +63,7 @@ def show_portal():
                     st.caption(f"Hosted by :**{ev[1]}**")
                     st.write(ev[5])
 
-                    if st.button("Join Activity", key =f"{ev[0]}_{ev[1]}"):
+                    if st.button("Join Activity", key =f"join_{idx}_{ev[0]}_{ev[1]}"):
                         st.success(f"You have successfully registered for {ev[0]}!!")                                      
                     st.divider()
         else:

@@ -72,7 +72,7 @@ def add_event(title, organizer_username, activity_type, location, event_date, de
      conn = get_connnection()      
      cursor = conn.cursor()
      cursor.execute(""" 
-      INSERT INTO events title, organizer_username, activity_type, location, event_date, description)
+      INSERT INTO events (title, organizer_username, activity_type, location, event_date, description)
       VALUES (?, ?, ?, ?, ?, ?)""",(title , organizer_username, activity_type, location, str(event_date), description))
      conn.commit()
      conn.close()
