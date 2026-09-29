@@ -23,9 +23,10 @@ def init_db():
         CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            ngo_username TEXT NOT NULL,
+            organizer_username TEXT NOT NULL,
             activity_type TEXT NOT NULL,
             location TEXT NOT NULL,
+            event_date TEXT NOT NULL,
             description TEXT
         )
     """)
@@ -65,11 +66,13 @@ def verify_user(username: str, password: str):
         return result[1]
     return None
 
+conn = get_connnection()
+cursor = conn.cursor()
 def add_event(title, organizer_username, activity_type, location, event_date, description):
      conn = get_connnection()      
      cursor = conn.cursor()
      cursor.execute(""" 
-      INSERT INTO events (title, organizer_username, activity_type, location, event_date, description)
+      INSERT INTO events title, organizer_username, activity_type, location, event_date, description)
       VALUES (?, ?, ?, ?, ?, ?)""",(title , organizer_username, activity_type, location, str(event_date), description))
      conn.commit()
      conn.close()
@@ -77,12 +80,12 @@ def add_event(title, organizer_username, activity_type, location, event_date, de
 def get_all_events():
     conn = get_connnection()
     cursor = conn.cursor()
-    cursor.execute("SELECET title, organizer_username, activity_type, location, event_date,description FROM events ORDER BY id DESC")
+    cursor.execute("SELECT title, organizer_username, activity_type, location, event_date,description FROM events ORDER BY id DESC")
     events = cursor.fetchall()
     conn.close()
     return events
 
-def get_organizer_events(organizer_username):
+def get_ngo_events(organizer_username):
     conn = get_connnection()
     cursor = conn.cursor()
     cursor.execute("SELECT title, activity_type, location, event_date, description FROM events WHERE organizer_username = ?",(organizer_username,))

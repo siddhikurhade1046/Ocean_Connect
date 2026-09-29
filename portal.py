@@ -2,6 +2,14 @@ import streamlit as st
 import database as db
 
 def show_portal():
+
+    if "logged_in" not in st.session_state or not st.session_state["logged_in"]:
+        st.warning("Please log in to access the portal.")
+        return
+
+    username = st.session_state.get("username","")
+    role  = st.session_state.get("role","")
+
     st.title("Ocean Connect Website")
     st.write(f"Logged in as:**{st.session_state['username']}**(`{st.session_state['role']}`) ")
 
@@ -13,27 +21,26 @@ def show_portal():
             st.markdown("### Post an Ocean Event")
             with st.form("create_event_form"):
                 title = st.text_input("Event Title")
-                activity_type = st.text("Activity Type " )
-
+                activity_type = st.text_input("Activity Type " )
                 location = st.text_input("Location / Beach  Name")
                 date = st.date_input("Event Date")
                 description = st.text_area("Description & Requirements")
 
                 submit_event = st.form_submit_button("Publish Event")
 
-                if submit_event:
-                    if title and activity_type and location and description:
-                        db.add_event(title , st.session_state["Username"], activity_type, location,date,description)
+        if submit_event:
+            if title and activity_type and location and description:
+                        db.add_event(title , st.session_state["username"], activity_type, location,date,description)
                         st.success("Event created successfully !!!")
-                    else:
+            else:
                         st.warning("Please fill in all event details.")
 
         with tab2:
             st.markdown("### Your Active Listings")
-            my_events = db.get_ngo_events(st.session_state["Username"])
+            my_events = db.get_organizer_events(username)
             if my_events :
                 for ev in my_events:
-                    with st.expaner(f" {ev[0]} ({ev[1]})"): 
+                    with st.expander(f" {ev[0]} ({ev[1]})"): 
                         st.write(f"**Location:** {ev[2]}")
                         st.write(f"**Date:**{ev[3]}")
                         st.write(f"**Details:** {ev[4]}")
@@ -55,15 +62,15 @@ def show_portal():
                     st.caption(f"Hosted by :**{ev[1]}**")
                     st.write(ev[5])
 
-                    if st.button("Join Activity", key =f"join{ev[0]}_{ev[1]}"):
+                    if st.button("Join Activity", key =f"{ev[0]}_{ev[1]}"):
                         st.success(f"You have successfully registered for {ev[0]}!!")                                      
                     st.divider()
         else:
             st.info("No Upcoming events found. Check back later!!")  
 
-if st.sidebar._button("Log Out"):
-    st.session_state("looged_in") = False
-    st.session_state("username") = ""
-    st.session_state("role") = ""
+if st.sidebar.button("Log Out"):
+    st.session_state["logged_in"] = False
+    st.session_state["username"] = ""
+    st.session_state["role"] = ""
     st.rerun()
         
