@@ -49,6 +49,7 @@ def init_db():
         )
     """)
     
+    
     conn.commit()
     conn.close()
 
@@ -112,14 +113,26 @@ def get_ngo_events(organizer_username):
     conn.close()
     return events
 
-def register_volunteer(event_title, username, full_name, email, dob, parent_name, parent_contact, parent_email):
+def register_volunteer(event_title, username, full_name, email, dob,age, parent_name, parent_contact, parent_email):
     conn = get_connnection()
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO event_registrations 
-        (event_title, username, full_name, email, dob, parent_name, parent_contact, parent_email)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (event_title, username, full_name, email, str(dob), parent_name, parent_contact, parent_email))
+        (event_title, username, full_name, email, dob,age, parent_name, parent_contact, parent_email)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)
+    """, (event_title, username, full_name, email, str(dob), age,parent_name, parent_contact, parent_email))
     conn.commit()
     conn.close()
     return True
+
+def get_event_volunteers(event_title):
+    conn = get_connnection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT full_name, email, dob, age, parent_name, parent_contact, parent_email 
+        FROM event_registrations 
+        WHERE event_title = ?
+    """, (event_title,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
