@@ -1,4 +1,5 @@
 import base64
+import base64
 import sqlite3
 import database as db
 import pandas as pd
@@ -49,12 +50,14 @@ add_bg_from_local("ocean bg.png")
 db.init_db()
 
 # Initialize session state variables
+# Initialize session state variables
 if "logged_in" not in st.session_state:
   st.session_state["logged_in"] = False
 if "username" not in st.session_state:
   st.session_state["username"] = ""
 if "role" not in st.session_state:
   st.session_state["role"] = ""
+
 
 def show_login_signup():
   # Display the sidebar logo (Specify your logo file name here)
@@ -80,11 +83,20 @@ def show_login_signup():
         st.session_state["username"] = username
         st.session_state["role"] = user_role
         st.success(f"Login successful as {user_role}!")
+        st.success(f"Login successful as {user_role}!")
         st.rerun()
       else:
         st.error("Invalid username or password.")
 
   elif choice == "Sign Up":
+    st.subheader("Create a new account")
+    with st.form("signup_form"):
+      new_user = st.text_input("Choose Username", autocomplete="off")
+      new_pass = st.text_input("Add Password", type="password")
+      confirm_pass = st.text_input("Confirm Password", type="password")
+
+      role_choice = st.radio("Account Type", ["Volunteer", "Organizer"])
+      submit = st.form_submit_button("Sign Up")
     st.subheader("Create a new account")
     with st.form("signup_form"):
       new_user = st.text_input("Choose Username", autocomplete="off")
@@ -110,6 +122,7 @@ def show_login_signup():
         else:
           st.error("Username already exists. Please choose a different one.")
 
+# Application control flow
 # Application control flow
 if st.session_state["logged_in"]:
   portal.show_portal()
