@@ -139,11 +139,15 @@ def register_volunteer(event_title, username, full_name, email, dob,age, parent_
 def get_event_volunteers(event_title):
     conn = get_connnection()
     cursor = conn.cursor()
+    # Make sure event_title is passed as a string, not a tuple
+    if isinstance(event_title, tuple):
+        event_title = event_title[0]
+
     cursor.execute("""
-        SELECT full_name, email, dob, age, parent_name, parent_contact, parent_email 
-        FROM event_registrations 
+        SELECT full_name, email, dob, age, parent_name, parent_contact, parent_email
+        FROM event_registrations
         WHERE event_title = ?
-    """, (event_title,))
-    data = cursor.fetchall()
+    """, (str(event_title),))
+    volunteers = cursor.fetchall()
     conn.close()
-    return data
+    return volunteers

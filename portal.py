@@ -125,79 +125,115 @@ def show_portal():
           st.warning("Please fill in all event details.")
 
     with tab2:
-      st.markdown("### 📋 Your Hosted Events & Participant Management")
-      my_events = db.get_ngo_events(username)
+       st.markdown("### 📋 Your Hosted Events & Participant Management")
+       my_events = db.get_ngo_events(username)
 
-      if my_events:
+       if my_events:
         for event_idx, ev in enumerate(my_events):
-          event_title = ev
-          with st.expander(f"📌 Event: {event_title} ({ev})"):
-            st.write(f"**Location:** {ev} | **Date:** {ev}")
-            st.markdown("#### 👥 Registered Volunteers")
-
-            volunteers = db.get_event_volunteers(event_title)
-            selected_volunteers = []
-
-            if volunteers:
-              # Use enumerate to guarantee unique keys per row
-              for idx, v in enumerate(volunteers):
-                v_name, v_email, v_dob, v_age, p_name, p_cont, p_email = v
-
-                col_info, col_select = st.columns()
-                with col_info:
-                  st.write(
-                      f"**{v_name}** ({v_email}) | DOB: {v_dob} | Age: {v_age}"
-                  )
-                  try:
-                    safe_age = int(v_age) if v_age is not None else 0
-                  except (ValueError, TypeError):
-                    safe_age = 0
-
-                  if safe_age < 23:
-                    st.caption(
-                        f"⚠️ Parent Consent: {p_name} | Phone: {p_cont} | Email:"
-                        f" {p_email}"
-                    )
-
-                with col_select:
-                  # Unique key using idx, event_title, and v_email
-                  is_selected = st.checkbox(
-                      "Select",
-                      key=f"sel_{event_idx}_{idx}_{event_title}_{v_email}",
-                  )
-                  if is_selected:
-                    selected_volunteers.append(v_email)
+            # 1. Properly unpack the tuple (Title, Type, Location, Date, Description)
+            ev_title, activity_type, location, event_date, description = ev
+            
+            with st.expander(f"📌 {ev_title} ({activity_type})"):
+                st.write(f"**Location:** {location} | **Date:** {event_date}")
+                st.write(f"**Description:** {description}")
                 st.divider()
 
-              if selected_volunteers:
-                emails_str = ",".join(selected_volunteers)
-                mail_subject = (
-                    f"Update regarding OceanConnect Event: {event_title}"
-                )
-                mail_body = (
-                    f"Hello,%0D%0A%0D%0AYou have been selected/shortlisted for"
-                    f" the event '{event_title}'. See you"
-                    "%0D%0A%0D%0ARegards"
-                )
-                mail_to_url = f"mailto:{emails_str}?subject={mail_subject}&body={mail_body}"
+                st.markdown("#### 👥 Registered Volunteers")
 
-                st.markdown(
-                    f'<a href="{mail_to_url}" target="_self"><button'
-                    ' style="background-color:#4CAF50; color:white; padding:10px'
-                    ' 20px; border:none;">Send Email to Selected'
-                    "</button></a>",
-                    unsafe_allow_html=True,
-                )
-            else:
-              st.info("No volunteers have registered for this event yet.")
-      else:
-        st.info("You haven't posted any events yet.")
+                # Fetch registered volunteers for this specific event
+                volunteers = db.get_event_volunteers(ev_title)
 
+                if volunteers:
+                    selected_volunteers = []
+
+                    for idx, v in enumerate(volunteers):
+                        v_name, v_email, v_dob, v_age, p_name, p_cont, p_email = (
+                            v
+                        )
+
+                        col_info, col_select = st.columns([3, 1])
+                        with col_info:
+                            st.write(
+                                f"👤 **{v_name}** ({v_email}) | DOB: {v_dob} |"
+                                f" Age: {v_age}"
+                            )
+
+                            # Safe integer check for age
+                            try:
+                              safe_age = (
+                                  int(v_age) if v_age is not None else 0
+                              )
+                            except (ValueError, TypeError):
+                              safe_age = 0
+
+                            if safe_age < 23:
+                              st.caption(
+                                  f"⚠️ Parent Consent: {p_name} | Phone:"
+                                  f" {p_cont} | Email: {p_email}"
+                              )
+
+                        with col_select:
+                            # Unique selection key per row
+                            is_selected = st.checkbox(
+                                "Select",
+                                key=f"sel_{event_idx}_{idx}_{ev_title}_{v_email}",
+                            )
+                            if is_selected:
+                              selected_volunteers.append(v_email)
+
+                    st.divider()
+
+                    # 2. PASTE THE CLEAN GMAIL BUTTON CODE HERE:
+                    if selected_volunteers:
+                      emails_str = ",".join(selected_volunteers)
+                      mail_subject = (
+                          f"Update regarding OceanConnect Event: {ev_title}"
+                      )
+                      mail_body = (
+                          "Hello,%0D%0A%0D%0AYou have been"
+                          f" selected/shortlisted for the event '{ev_title}'."
+                          " See you there!%0D%0A%0D%0ARegards,"
+                          f"%0D%0A{username}"
+                      )
+
+                      mail_to_url = f"mailto:{emails_str}?subject={mail_subject}&body={mail_body}"
+
+                      st.markdown(
+                          f'<a href="{mail_to_url}" target="_self">'
+                          '<button style="background-color:#4CAF50;'
+                          " color:white; padding:10px 20px; border:none;"
+                          ' border-radius:5px; cursor:pointer;">'
+                          "📧 Send Email to Selected Volunteers"
+                          f" ({len(selected_volunteers)})"
+                          "</button></a>",
+                          unsafe_allow_html=True,
+                      )
+                else:
+                    st.info("No volunteers have registered for this event yet.")
+        else:
+            st.info("You haven't posted any events yet.")
   # --------------------------------------------------
   # VOLUNTEER / PARTICIPANT VIEW
   # --------------------------------------------------
   else:
-    st.subheader("🌐 Explore & Register for Ocean Events")
+    st.subheader("🌏 Explore & Register for Ocean Events")
+    # 1. Map Display
+    show_india_map()
+    
+    st.divider()
+    
+    # 2. Location Filter
+    st.subheader("📍 Find Events Near Your Location")
+    user_city = st.selectbox(
+        "Select region to filter nearby events:",
+        ["All Locations", "Juhu", "Mumbai", "SIES GST", "Nerul", "Goa", "Chennai", "Kochi"]
+    )
+    
+    all_events = db.get_all_events()
+    if user_city != "All Locations" and all_events:
+        events = [ev for ev in all_events if ev[3] and user_city.lower() in str(ev[3]).lower()]
+    else:
+        events = all_events
     events = db.get_all_events()
 
     if events:

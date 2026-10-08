@@ -47,31 +47,33 @@ def show_login_signup():
         st.error("Invalid username or password.")
 
   elif choice == "Sign Up":
-    st.subheader("Create a new Account")
-    with st.form("signup_form"):
-      new_user = st.text_input("Choose Username", autocomplete="off")
-      new_pass = st.text_input("Add Password", type="password")
-      confirm_pass = st.text_input("Confirm Password", type="password")
+        st.subheader("Create a new Account")
+        with st.form("signup_form"):
+            new_user = st.text_input("Choose Username", autocomplete="off")
+            new_pass = st.text_input("Add Password", type="password")
+            confirm_pass = st.text_input("Confirm Password", type="password")
+            
+            role_choice = st.radio("Account Type", ["Volunteer", "Organizer"])
+            submit = st.form_submit_button("Sign Up")
 
-      role = st.radio("Account Type", ["Volunteer", "Organizer"])
-      role_selected = "Organizer" if "Organizer" in role else "Volunteer"
-      submit = st.form_submit_button("Sign Up")
-
-      if submit:
-        if not new_user or not new_pass:
-          st.warning("Please fill out all the fields.")
-        elif new_pass != confirm_pass:
-          st.error("Password not matched")
-        else:
-          if db.register_user(new_user, new_pass, role_selected):
-            st.success(
-                "Account created successfully !! Go to the Login Page to"
-                " proceed with the Login."
-            )
-          else:
-            st.error(
-                "Username already exists. Please pick a different Username."
-            )
+            if submit:
+                role = "Organizer" if "Organizer" in role_choice else "Volunteer"
+                if not new_user or not new_pass:
+                    st.warning("Please fill out all the fields.")
+                elif new_pass != confirm_pass:
+                    st.error("Password not matched")
+                else:
+                    if db.register_user(new_user, new_pass, role):
+                        # 1. Set session state variables immediately upon registration
+                        st.session_state["logged_in"] = True
+                        st.session_state["username"] = new_user
+                        st.session_state["role"] = role
+                        st.success("Account created successfully! Redirecting...")
+                        
+                        # 2. Automatically rerun to open portal.py directly
+                        st.rerun()
+                    else:
+                        st.error("Username already exists. Please pick a different Username.")
 
 # App Control Flow
 if st.session_state["logged_in"]:
