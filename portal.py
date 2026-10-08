@@ -1,6 +1,62 @@
 import streamlit as st
 import database as db
 from datetime import date
+import folium
+from streamlit_folium import st_folium
+from database import COASTAL_CITIES
+
+def show_india_map():
+    st.subheader("🇮🇳 All-India Ocean Clean-up Map")
+    st.write("Explore active clean-up drives happening across India's coastline.")
+
+    # Create a map centered over India
+    m = folium.Map(location=[20.5937, 78.9629], zoom_start=5)
+
+    # Fetch all events from your database
+    events = db.get_all_events()
+
+    if events:
+        for ev in events:
+            location_name = ev[3]  
+            coords = None
+            
+            if location_name:
+                loc_lower = location_name.lower()
+                
+                # Smart keyword mapping for specific regions and local campuses
+                if "tarkali" in loc_lower:
+                    coords = [15.9591, 73.5118]  # Tarkali coordinates
+                elif "nerul" in loc_lower or "sies" in loc_lower or "navi mumbai" in loc_lower:
+                    coords = [19.0330, 73.0297]  # Navi Mumbai / Nerul coordinates
+                elif "mumbai" in loc_lower or "juhu" in loc_lower or "marine drive" in loc_lower:
+                    coords = [18.9220, 72.8347]  # Mumbai main coordinates
+                elif "goa" in loc_lower:
+                    coords = [15.2993, 74.1240]
+                elif "chennai" in loc_lower or "marina" in loc_lower:
+                    coords = [13.0827, 80.2707]
+                elif "kochi" in loc_lower:
+                    coords = [9.9312, 76.2673]
+                elif "visakhapatnam" in loc_lower or "vizag" in loc_lower:
+                    coords = [17.6868, 83.2185]
+                elif "puri" in loc_lower:
+                    coords = [19.8135, 85.8312]
+                elif "kolkata" in loc_lower:
+                    coords = [22.5726, 88.3639]
+                elif "surat" in loc_lower:
+                    coords = [21.1702, 72.8311]
+            
+            if coords:
+                #  marker for each event dynamically
+                folium.Marker(
+                    location=coords,
+                    popup=f"<b>{ev[0]}</b><br>Type: {ev[2]}<br>Date: {ev[4]}<br>Location: {location_name}",
+                    tooltip=ev[0],
+                    icon=folium.Icon(color="blue", icon="tint", prefix="fa")
+                ).add_to(m)
+    else:
+        st.info("No active events found in the database yet.")
+
+    st_folium(m, width=700, height=500)
 
 def show_portal():
     # ----------------------------------------------------
@@ -29,7 +85,7 @@ def show_portal():
     # ORGANIZER / HOST VIEW
     # ----------------------------------------------------
     if role == "Organizer":
-        st.title("🛡️️ Organizer Portal")
+        st.title(" Organizer Portal")
         
         tab1, tab2 = st.tabs(["Host New Event", "My Hosted Events"])
         
@@ -107,10 +163,34 @@ def show_portal():
     # ----------------------------------------------------
     else:
         st.subheader("🌍 Explore & Register for Ocean Events")
+
+        show_india_map()
+        st.markdown("---")
+
+        # 2. Add "Find Near Me" Location Filtering Feature
+        st.subheader("📍 Find Events Near Your Location")
+        user_location_choice = st.selectbox(
+            "Select your city/residential region to find nearby drives:", 
+            ["All Locations"] + list(COASTAL_CITIES.keys()),
+            key="find_near_me_location"
+            
+        )
+
         events = db.get_all_events()
+
+        # Smart filter events based on user's selected location choice
+        if user_location_choice != "All Locations" and events:
+            city_base = user_location_choice.split(",")[0].strip().lower()
+            filtered_events = [ev for ev in events if ev[3] and city_base in ev[3].lower()]
+            st.info(f"Showing events near: **{user_location_choice}**")
+        else:
+            filtered_events = events
+            
+        st.markdown("---")
+        st.subheader("📋 Available Clean-up Events")
         
-        if events:
-            for idx, ev in enumerate(events):
+        if filtered_events:
+            for idx, ev in enumerate(filtered_events):
                 ev_title, organizer, activity, location, ev_date, desc = ev
                 with st.container():
                     st.markdown(f"### 🌊 {ev_title}")
