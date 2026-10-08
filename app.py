@@ -5,8 +5,9 @@ import database as db
 import pandas as pd
 import portal
 import streamlit as st
+from constants import COASTAL_CITIES
 
-# Function to set a local image as the website background
+@st.cache_data
 def add_bg_from_local(image_file):
   try:
     with open(image_file, "rb") as f:
@@ -97,15 +98,6 @@ def show_login_signup():
 
       role_choice = st.radio("Account Type", ["Volunteer", "Organizer"])
       submit = st.form_submit_button("Sign Up")
-    st.subheader("Create a new account")
-    with st.form("signup_form"):
-      new_user = st.text_input("Choose Username", autocomplete="off")
-      new_pass = st.text_input("Add Password", type="password")
-      confirm_pass = st.text_input("Confirm Password", type="password")
-
-      role_choice = st.radio("Account Type", ["Volunteer", "Organizer"])
-      submit = st.form_submit_button("Sign Up")
-
     if submit:
       role = "Organizer" if "Organizer" in role_choice else "Volunteer"
       if not new_user or not new_pass:

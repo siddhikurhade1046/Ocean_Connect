@@ -1,16 +1,15 @@
 import sqlite3
 import hashlib
+import streamlit as st  
 
-COASTAL_CITIES = {
-    "Mumbai, Maharashtra": [18.9220, 72.8347],
-    "Goa": [15.2993, 74.1240],
-    "Chennai, Tamil Nadu": [13.0827, 80.2707],
-    "Kochi, Kerala": [9.9312, 76.2673],
-    "Visakhapatnam, Andhra Pradesh": [17.6868, 83.2185],
-    "Puri, Odisha": [19.8135, 85.8312],
-    "Kolkata, West Bengal": [22.5726, 88.3639],
-    "Surat, Gujarat": [21.1702, 72.8311],
-}
+@st.cache_data(ttl=60)
+def get_all_events():
+    conn = get_connnection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT title, organizer_username, activity_type, location, event_date, description FROM events ORDER BY id DESC")
+    events = cursor.fetchall()
+    conn.close()
+    return events
 
 def get_connnection():
     return sqlite3.connect("ocean_connect.db")
@@ -108,14 +107,6 @@ def add_event(title, organizer_username, activity_type, location, event_date, de
     conn.commit()
     conn.close()
 
-def get_all_events():
-    conn = get_connnection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT title, organizer_username, activity_type, location, event_date, description FROM events ORDER BY id DESC")
-    events = cursor.fetchall()
-    conn.close()
-    return events
-
 def get_ngo_events(organizer_username):
     conn = get_connnection()
     cursor = conn.cursor()
@@ -151,3 +142,18 @@ def get_event_volunteers(event_title):
     volunteers = cursor.fetchall()
     conn.close()
     return volunteers
+
+def get_user_registered_events(username):
+    conn = get_connnection()
+    cursor = conn.cursor()
+    # Join event_registrations with events to get full details of registered events
+    cursor.execute("""
+        SELECT e.title, e.organizer_username, e.activity_type, e.location, e.event_date, e.description
+        FROM events e
+        INNER JOIN event_registrations r ON e.title = r.event_title
+        WHERE r.username = ?
+        ORDER BY e.event_date ASC
+    """, (username,))
+    events = cursor.fetchall()
+    conn.close()
+    return events
